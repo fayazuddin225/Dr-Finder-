@@ -200,6 +200,31 @@ st.markdown("""
         width: 100% !important;
         box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2) !important;
     }
+
+    /* AI Assistant Section Visibility */
+    .stExpander {
+        background: rgba(30, 41, 59, 0.5) !important;
+        border: 1px solid rgba(56, 189, 248, 0.3) !important;
+        border-radius: 15px !important;
+    }
+
+    .stExpander [data-testid="stExpanderDetails"] {
+        color: #f8fafc !important;
+    }
+
+    /* AI Input Field Contrast */
+    .stExpander input {
+        background-color: #1e293b !important;
+        color: white !important;
+        border: 1px solid #38bdf8 !important;
+    }
+
+    /* AI Question Label */
+    .stExpander label p {
+        color: #38bdf8 !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 

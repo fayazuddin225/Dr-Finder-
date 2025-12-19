@@ -51,9 +51,10 @@ def setup_driver():
     options = Options()
     options.add_argument("--start-maximized")
     options.add_argument("--disable-notifications")
-    options.add_argument("--headless")  # run in background without opening browser
+    options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
     service = Service(ChromeDriverManager().install())
     return webdriver.Chrome(service=service, options=options)

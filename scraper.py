@@ -55,9 +55,24 @@ def setup_driver():
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-
-    service = Service(ChromeDriverManager().install())
-    return webdriver.Chrome(service=service, options=options)
+    
+    # Check if we are in a Linux/Streamlit environment
+    import os
+    if os.path.exists("/usr/bin/chromium"):
+        options.binary_location = "/usr/bin/chromium"
+        return webdriver.Chrome(options=options)
+    elif os.path.exists("/usr/bin/chromium-browser"):
+        options.binary_location = "/usr/bin/chromium-browser"
+        return webdriver.Chrome(options=options)
+    
+    # Default for local development
+    try:
+        service = Service(ChromeDriverManager().install())
+        return webdriver.Chrome(service=service, options=options)
+    except Exception as e:
+        print(f"Standard Chrome startup failed: {e}")
+        # Final fallback attempt
+        return webdriver.Chrome(options=options)
 
 
 def click_load_more(driver):

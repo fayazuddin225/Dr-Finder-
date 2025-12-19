@@ -6,7 +6,7 @@ import json
 
 # --- CONFIGURATION ---
 # For Streamlit Cloud: Add GEMINI_API_KEY in Settings -> Secrets
-GEMINI_API_KEY = "" 
+GEMINI_API_KEY = "AIzaSyC6fvZ9T_yHultfoH0CvOznHkoYYc1MGiw" 
 # ---------------------
 
 # Set page configuration
@@ -243,50 +243,52 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+@st.cache_data(ttl=3600)  # Cache data for 1 hour
 def get_doctors_data():
     try:
         conn = sqlite3.connect("doctors.db")
+        # Ensure we have data
         query = "SELECT * FROM doctors WHERE is_active = 1"
         df = pd.read_sql_query(query, conn)
         conn.close()
         return df
     except Exception as e:
-        st.error(f"Error connecting to database: {e}")
+        # Fallback for empty/missing DB
         return pd.DataFrame()
 
 def ask_gemini(api_key, user_query, df):
     if not api_key:
-        return "Please provide a Gemini API Key in the sidebar to use the AI Assistant."
-    
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
-    # Prepare data for grounding
-    # We'll send the top 15 doctors as context to keep prompt size reasonable
-    doctors_context = df[['name', 'specialization', 'experience', 'rating', 'fee']].head(20).to_dict('records')
-    
-    prompt = f"""
-    You are an expert Medical Consultant Assistant for 'ENT Doctor Finder Lahore'.
-    The user is looking for a doctor. Use the following list of ENT specialists in Lahore to answer their query.
-    
-    Doctors Data:
-    {json.dumps(doctors_context)}
-    
-    User Query: "{user_query}"
-    
-    Instructions:
-    1. Recommend the 2-3 best doctors from the data provided based on the query.
-    2. Mention their Name, Specialization, Rating, and Fee.
-    3. Keep the tone professional, caring, and helpful.
-    4. If you don't find a perfect match, suggest the most relevant ones.
-    5. Format the output beautifully with markdown (bolding, lists).
-    """
+        return "Assistant unavailable. Key not set."
     
     try:
+        # Configure inside to avoid global startup latency
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Prepare data for grounding
+        doctors_context = df[['name', 'specialization', 'experience', 'rating', 'fee']].head(20).to_dict('records')
+        
+        prompt = f"""
+        You are an expert Medical Consultant Assistant for 'ENT Doctor Finder Lahore'.
+        The user is looking for a doctor. Use the following list of ENT specialists in Lahore to answer their query.
+        
+        Doctors Data:
+        {json.dumps(doctors_context)}
+        
+        User Query: "{user_query}"
+        
+        Instructions:
+        1. Recommend the 2-3 best doctors from the data provided based on the query.
+        2. Mention their Name, Specialization, Rating, and Fee.
+        3. Keep the tone professional, caring, and helpful.
+        4. If you don't find a perfect match, suggest the most relevant ones.
+        5. Format the output beautifully with markdown (bolding, lists).
+        """
+        
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return f"Error connecting to Gemini: {str(e)}"
+        return f"Error: {str(e)}"
 
 def main():
     st.markdown("""

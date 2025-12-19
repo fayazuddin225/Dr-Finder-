@@ -215,8 +215,24 @@ st.markdown("""
     /* AI Input Field Contrast */
     .stExpander input {
         background-color: #1e293b !important;
-        color: white !important;
+        color: #ffffff !important;
         border: 1px solid #38bdf8 !important;
+    }
+
+    /* Target ALL input placeholders for maximum visibility */
+    ::placeholder {
+        color: #94a3b8 !important;
+        opacity: 0.8 !important;
+    }
+
+    input::placeholder {
+        color: #94a3b8 !important;
+        opacity: 0.8 !important;
+    }
+
+    /* Ensure text being typed is pure white */
+    input {
+        color: #ffffff !important;
     }
 
     /* AI Question Label */

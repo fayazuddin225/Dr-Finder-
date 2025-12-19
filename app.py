@@ -299,18 +299,20 @@ def main():
     if max_fee > 0:
         filtered_df = filtered_df[filtered_df['fee_numeric'] <= budget]
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("🤖 AI Assistant")
-    gemini_key = st.sidebar.text_input("Enter Gemini API Key", type="password", help="Get your key at https://aistudio.google.com/app/apikey")
+    # Use hardcoded API Key from Streamlit Secrets (for security) or fallback
+    # To set this in Streamlit Cloud: Settings -> Secrets -> GEMINI_API_KEY = "your_key"
+    gemini_key = st.secrets.get("GEMINI_API_KEY", "")
     
     # Display results
     st.subheader(f"Showing {len(filtered_df)} Specialists")
 
     # AI Recommendation Section
-    if gemini_key:
-        with st.expander("✨ Ask AI for Recommendation", expanded=True):
-            user_question = st.text_input("Describe your symptoms or what you're looking for:", placeholder="e.g. I have a sore throat and need an experienced doctor within 2500 Rs.")
-            if user_question:
+    with st.expander("✨ Ask AI for Recommendation", expanded=True):
+        user_question = st.text_input("Describe your symptoms or what you're looking for:", placeholder="e.g. I have a sore throat and need an experienced doctor within 2500 Rs.")
+        if user_question:
+            if not gemini_key:
+                st.error("AI Assistant is currently unavailable. (API Key not configured)")
+            else:
                 with st.spinner("AI is analyzing doctors..."):
                     ai_response = ask_gemini(gemini_key, user_question, filtered_df)
                     st.markdown(f"""
@@ -318,8 +320,6 @@ def main():
                             {ai_response}
                         </div>
                     """, unsafe_allow_html=True)
-    else:
-        st.sidebar.info("💡 Enter your API Key to unlock AI recommendations!")
 
     if filtered_df.empty:
         st.info("No doctors found matching your criteria. Try relaxing the filters.")

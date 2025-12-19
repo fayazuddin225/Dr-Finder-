@@ -5,8 +5,7 @@ import google.generativeai as genai
 import json
 
 # --- CONFIGURATION ---
-# Paste your Gemini API Key here if running locally
-# For Streamlit Cloud, you can also use Secrets
+# For Streamlit Cloud: Add GEMINI_API_KEY in Settings -> Secrets
 GEMINI_API_KEY = "" 
 # ---------------------
 

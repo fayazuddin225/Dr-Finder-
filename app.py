@@ -4,6 +4,12 @@ import pandas as pd
 import google.generativeai as genai
 import json
 
+# --- CONFIGURATION ---
+# Paste your Gemini API Key here if running locally
+# For Streamlit Cloud, you can also use Secrets
+GEMINI_API_KEY = "" 
+# ---------------------
+
 # Set page configuration
 st.set_page_config(
     page_title="Ent",
@@ -299,9 +305,13 @@ def main():
     if max_fee > 0:
         filtered_df = filtered_df[filtered_df['fee_numeric'] <= budget]
 
-    # Use hardcoded API Key from Streamlit Secrets (for security) or fallback
-    # To set this in Streamlit Cloud: Settings -> Secrets -> GEMINI_API_KEY = "your_key"
-    gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+    # Access API Key from code variable or safely from Streamlit Secrets
+    gemini_key = GEMINI_API_KEY
+    if not gemini_key:
+        try:
+            gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+        except:
+            gemini_key = ""
     
     # Display results
     st.subheader(f"Showing {len(filtered_df)} Specialists")

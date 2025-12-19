@@ -2,3 +2,6 @@ selenium
 beautifulsoup4
 webdriver-manager
 requests
+google-generativeai
+pandas
+streamlit

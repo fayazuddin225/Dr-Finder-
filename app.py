@@ -1,6 +1,8 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+import google.generativeai as genai
+import json
 
 # Set page configuration
 st.set_page_config(
@@ -201,10 +203,43 @@ def get_doctors_data():
         query = "SELECT * FROM doctors WHERE is_active = 1"
         df = pd.read_sql_query(query, conn)
         conn.close()
-        return df
     except Exception as e:
         st.error(f"Error connecting to database: {e}")
         return pd.DataFrame()
+
+def ask_gemini(api_key, user_query, df):
+    if not api_key:
+        return "Please provide a Gemini API Key in the sidebar to use the AI Assistant."
+    
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # Prepare data for grounding
+    # We'll send the top 15 doctors as context to keep prompt size reasonable
+    doctors_context = df[['name', 'specialization', 'experience', 'rating', 'fee']].head(20).to_dict('records')
+    
+    prompt = f"""
+    You are an expert Medical Consultant Assistant for 'ENT Doctor Finder Lahore'.
+    The user is looking for a doctor. Use the following list of ENT specialists in Lahore to answer their query.
+    
+    Doctors Data:
+    {json.dumps(doctors_context)}
+    
+    User Query: "{user_query}"
+    
+    Instructions:
+    1. Recommend the 2-3 best doctors from the data provided based on the query.
+    2. Mention their Name, Specialization, Rating, and Fee.
+    3. Keep the tone professional, caring, and helpful.
+    4. If you don't find a perfect match, suggest the most relevant ones.
+    5. Format the output beautifully with markdown (bolding, lists).
+    """
+    
+    try:
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error connecting to Gemini: {str(e)}"
 
 def main():
     st.markdown("""
@@ -263,8 +298,27 @@ def main():
     if max_fee > 0:
         filtered_df = filtered_df[filtered_df['fee_numeric'] <= budget]
 
+    st.sidebar.markdown("---")
+    st.sidebar.header("🤖 AI Assistant")
+    gemini_key = st.sidebar.text_input("Enter Gemini API Key", type="password", help="Get your key at https://aistudio.google.com/app/apikey")
+    
     # Display results
     st.subheader(f"Showing {len(filtered_df)} Specialists")
+
+    # AI Recommendation Section
+    if gemini_key:
+        with st.expander("✨ Ask AI for Recommendation", expanded=True):
+            user_question = st.text_input("Describe your symptoms or what you're looking for:", placeholder="e.g. I have a sore throat and need an experienced doctor within 2500 Rs.")
+            if user_question:
+                with st.spinner("AI is analyzing doctors..."):
+                    ai_response = ask_gemini(gemini_key, user_question, filtered_df)
+                    st.markdown(f"""
+                        <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 15px; padding: 20px; color: white;">
+                            {ai_response}
+                        </div>
+                    """, unsafe_allow_html=True)
+    else:
+        st.sidebar.info("💡 Enter your API Key to unlock AI recommendations!")
 
     if filtered_df.empty:
         st.info("No doctors found matching your criteria. Try relaxing the filters.")

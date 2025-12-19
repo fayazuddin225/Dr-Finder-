@@ -203,6 +203,7 @@ def get_doctors_data():
         query = "SELECT * FROM doctors WHERE is_active = 1"
         df = pd.read_sql_query(query, conn)
         conn.close()
+        return df
     except Exception as e:
         st.error(f"Error connecting to database: {e}")
         return pd.DataFrame()

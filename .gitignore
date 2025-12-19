@@ -1,0 +1,19 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Environments
+.venv/
+env/
+venv/
+.env
+
+# Database (Optional - Keeping it if you want the data on GitHub)
+# doctors.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Streamlit
+.streamlit/
